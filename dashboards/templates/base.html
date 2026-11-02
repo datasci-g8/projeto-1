@@ -1,0 +1,16 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block titulo %}{% endblock %} — Projeto 1 · Lab. Ciência de Dados</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script></head><body>
+<header><h1>Projeto 1 — Análise univariada de estatísticas da NBA 2025-26</h1><small>Laboratório de Ciência de Dados · UFAPE 2026.2 · Grupo 8: Golden State Warriors e Orlando Magic</small></header>
+{% set paginas=[('index','Base e dicionário'),('qualidade_view','Qualidade dos dados'),('outliers_view','Outliers'),('descritiva_view','Medidas descritivas'),('assimetria_view','Assimetria'),('cv_view','Coef. de variação'),('iqr_view','IQR'),('sintese_view','Síntese')] %}
+<nav>{% for ep,nome in paginas %}<a href="{{ url_for(ep, times=times_sel, var=var_sel) }}" class="{{ 'ativo' if request.endpoint==ep }}">{{ nome }}</a>{% endfor %}</nav>
+<main>
+<form class="filtro" method="get">
+ <div><label>Times (Ctrl/Cmd + clique para vários)</label><select name="times" multiple size="6">{% for t in todos_times %}<option value="{{ t }}" {{ 'selected' if t in times_sel }}>{{ t }}{{ ' ★ Grupo 8' if t in grupo }}</option>{% endfor %}</select></div>
+ <div><label>Variável</label><select name="var">{% for v in variaveis %}<option value="{{ v }}" {{ 'selected' if v==var_sel }}>{{ rotulos[v] }}</option>{% endfor %}</select></div>
+ <button type="submit">Atualizar</button>
+ <span class="nota">Padrão: times do Grupo 8. Seleção atual: <b>{{ times_sel|join(', ') }}</b> · variável <b>{{ rotulos[var_sel] }}</b>.</span>
+</form>
+{% block conteudo %}{% endblock %}
+</main><footer>Convenções em todo o sistema: desvio padrão amostral (n−1) · quartis por interpolação linear (padrão pandas) · outliers 1,5×IQR · 2 casas decimais · unidades "por jogo".</footer></body></html>

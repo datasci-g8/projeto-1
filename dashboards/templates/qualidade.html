@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block titulo %}Qualidade dos dados{% endblock %}{% block conteudo %}
+<h2>1. Valores ausentes por coluna (base original)</h2>{{ ausentes|safe }}
+<div class="interp"><p>{{ conclusao_ausentes }}</p></div>
+<h2>2. Homologação da base tratada</h2>
+<div class="caixa">Linhas: {{ resumo_qual.linhas }} · Colunas: {{ resumo_qual.colunas }} · Issues de inconsistência: {{ inconsistencias }}</div>
+<p>Regras completas em <code>/api/quality/summary</code> e em <code>docs/tratamento.md</code>.</p>
+<h2>3. Mecanismos MCAR, MAR e MNAR</h2>
+<ul>
+<li><b>MCAR:</b> ausência aleatória, independente dos valores observados e do valor faltante.</li>
+<li><b>MAR:</b> ausência relacionada a variáveis observadas, não ao valor faltante em si.</li>
+<li><b>MNAR:</b> ausência depende do valor não observado; não testável só com dados observados.</li>
+</ul>
+<h3>3.1 Testes implementados (variáveis de análise, base original)</h3>
+<table class="tabela">
+<tr><th>Teste</th><th>p-valor</th><th>Conclusão</th></tr>
+{% for nome, t in testes.items() %}
+<tr><td style="text-align:left">{{ nome }}</td><td>{{ t.get('p_valor', '—') }}</td><td style="text-align:left">{{ t.get('conclusao', '') }}</td></tr>
+{% endfor %}
+</table>
+<div class="interp"><p>Detalhes teóricos e interpretação em <code>docs/ausentes.md</code> e <code>/api/missing/tests</code>.</p></div>
+<h2>4. Outliers e inconsistências</h2>
+<p>Inconsistências aritméticas e de domínio são tratadas em <code>dashboards/prep/cleaning.py</code> (30 regras). Outliers estatísticos (jogos atípicos) são analisados na seção <a href="{{ url_for('outliers_view', times=times_sel, var=var_sel) }}">Outliers</a>.</p>
+{% endblock %}

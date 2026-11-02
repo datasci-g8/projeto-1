@@ -1,0 +1,16 @@
+:root{--azul:#1D428A;--cinza:#f4f6fa;--borda:#dde3ee;--txt:#1f2937}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--txt);background:#fff;line-height:1.55}
+header{background:var(--azul);color:#fff;padding:14px 24px}header h1{margin:0;font-size:1.25rem}header small{opacity:.85}
+nav{background:var(--cinza);border-bottom:1px solid var(--borda);padding:8px 24px;display:flex;flex-wrap:wrap;gap:4px 14px}
+nav a{color:var(--azul);text-decoration:none;font-weight:600;padding:4px 2px}nav a.ativo{border-bottom:3px solid var(--azul)}
+main{max-width:1200px;margin:0 auto;padding:20px 24px}
+.filtro{background:var(--cinza);border:1px solid var(--borda);border-radius:8px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:20px}
+.filtro label{display:block;font-size:.8rem;font-weight:600;margin-bottom:4px}.filtro select{font-size:.95rem;padding:4px}.filtro button{background:var(--azul);color:#fff;border:0;padding:8px 16px;border-radius:6px;cursor:pointer}
+h2{color:var(--azul);border-bottom:2px solid var(--borda);padding-bottom:4px;margin-top:34px}h3{margin-top:26px}
+.tabela{border-collapse:collapse;font-size:.85rem;margin:10px 0;display:block;overflow-x:auto;max-width:100%}
+.tabela th,.tabela td{border:1px solid var(--borda);padding:5px 8px;text-align:right;white-space:nowrap}.tabela th{background:var(--cinza)}.tabela td:first-child,.tabela th:first-child{text-align:left}
+.tabela tbody tr:nth-child(even){background:#fafbfd}
+.caixa{background:var(--cinza);border-left:4px solid var(--azul);padding:12px 16px;border-radius:0 6px 6px 0;margin:12px 0}
+.interp{background:#fffbea;border-left:4px solid #f0b429;padding:12px 16px;margin:12px 0;border-radius:0 6px 6px 0}
+.interp p{margin:6px 0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.nota{font-size:.85rem;color:#555}code{background:var(--cinza);padding:1px 5px;border-radius:4px}footer{padding:20px;text-align:center;color:#777;font-size:.8rem}

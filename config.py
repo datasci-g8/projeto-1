@@ -19,6 +19,7 @@ CLEAN_DIR = DATA_DIR / "clean"
 CLEAN_CSV = CLEAN_DIR / "base_tratada.csv"
 MODEL_CSV = CLEAN_DIR / "base_modelagem.csv"  # base limpa sem COLUNAS_EXCLUIDAS_MODELAGEM
 STATIC_DIR = BASE_DIR / "dashboards" / "static"
+TEMPLATES_DIR = BASE_DIR / "dashboards" / "templates"
 DOCS_DIR = BASE_DIR / "docs"
 
 # ---------------------------------------------------------------------------
