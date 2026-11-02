@@ -182,6 +182,22 @@ TOLERANCIA_PONTOS = 1e-6    # pontos são contagens inteiras
 METODO_QUARTIS = "interpolacao_linear"  # padrão pandas/numpy (tipo 7 de Hyndman-Fan)
 DDOF = 1                    # desvio padrão e variância amostrais
 
+# Ausentes (#2). Os parâmetros de simulação são usados só na validação dos testes.
+ALPHA_TESTES = 0.05
+SEMENTE = 42
+PROPORCAO_AUSENTE = 0.15
+COLUNA_ALVO_AUSENCIA = "assistencias"
+COLUNA_CAUSA_MAR = "pontos"
+PERMUTACOES_JJ = 199
+
+# Outliers (#3)
+K_VIZINHOS_KNN = 5
+K_VIZINHOS_LOF = 20
+LOF_LIMIAR = 1.5
+DBSCAN_MIN_AMOSTRAS_POR_DIM = 2
+DBSCAN_MIN_AMOSTRAS_MINIMO = 4
+SENSIBILIDADE = {"knn": (5, 10, 20), "lof": (10, 20, 35), "dbscan": (4, 8, 12)}
+
 # ---------------------------------------------------------------------------
 # Times da NBA: nome oficial -> abreviação usada em MATCHUP
 # ---------------------------------------------------------------------------

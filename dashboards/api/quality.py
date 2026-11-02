@@ -42,6 +42,11 @@ def _resultado() -> dict:
     )
 
 
+def resultado_atual() -> dict:
+    """Resultado cacheado do tratamento, reutilizado pelas rotas de outliers."""
+    return _resultado()
+
+
 @bp.get("/summary")
 def summary():
     return jsonify(_resultado()["resumo"])
