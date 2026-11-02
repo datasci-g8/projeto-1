@@ -8,12 +8,14 @@ from __future__ import annotations
 
 import os
 
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify
 
 import config
+from dashboards.api.descriptive import bp as descriptive_bp
 from dashboards.api.missing import bp as missing_bp
+from dashboards.api.outliers import bp as outliers_bp
 from dashboards.api.quality import bp as quality_bp
-from dashboards.api.routes_outliers import bp as outliers_bp
+from dashboards.web.painel import registrar_painel
 
 
 def _caminho_bruto_relativo() -> str:
@@ -29,14 +31,14 @@ def create_app() -> Flask:
         __name__,
         static_folder=str(config.STATIC_DIR),
         static_url_path="/static",
+        template_folder=str(config.TEMPLATES_DIR),
     )
     app.register_blueprint(quality_bp, url_prefix="/api/quality")
     app.register_blueprint(missing_bp, url_prefix="/api/missing")
     app.register_blueprint(outliers_bp, url_prefix="/api/outliers")
+    app.register_blueprint(descriptive_bp, url_prefix="/api/descriptive")
 
-    @app.get("/")
-    def index():
-        return send_from_directory(app.static_folder, "index.html")
+    registrar_painel(app)
 
     @app.get("/api/health")
     def health():
