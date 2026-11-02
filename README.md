@@ -29,11 +29,11 @@ script de análise sem mudança.
 | main.py | aplicação Flask, monta /static e registra o blueprint de qualidade |
 | config.py | caminhos, times do grupo, variáveis, renomeação e constantes |
 | dashboards/prep/loader.py | leitura, validação das 28 colunas, tipagem, data e colunas derivadas |
-| dashboards/prep/cleaning.py | duplicatas, 27 regras de inconsistência, registros afetados, relatório e base limpa |
+| dashboards/prep/cleaning.py | duplicatas, 30 regras de inconsistência, registros afetados, relatório, base limpa e base de modelagem |
 | dashboards/api/quality.py | rotas /api/quality/summary, /issues, /regras e /api/health |
 | dashboards/static/index.html | página inicial mínima com links para a API |
 | tests/ | fixtures sintéticas e testes do loader, das regras e da API |
-| data/ | CSV bruto (não alterar) e data/clean/base_tratada.csv (gerado) |
+| data/ | CSV bruto (não alterar), data/clean/base_tratada.csv e data/clean/base_modelagem.csv (gerados) |
 | docs/tratamento.md | regras, decisões, justificativas e contrato da API |
 
 ## Como rodar
@@ -45,7 +45,7 @@ script de análise sem mudança.
 
 Acesse http://localhost:5000. A porta pode ser trocada com a variável PORT.
 
-Para gerar a base limpa sem subir o servidor:
+Para gerar a base limpa e a base de modelagem sem subir o servidor:
 
     python -m dashboards.prep.cleaning
 
@@ -84,6 +84,7 @@ não gravam a base limpa; os registros removidos por duplicata aparecem em
 |---|---|
 | Linhas (bruto → limpo) | 2.238 → 2.238 |
 | Colunas (bruto → limpo) | 28 → 33 (27 originais + 6 derivadas) |
+| Colunas da base de modelagem | 26 (sem IDs, acumulados, minutos e data) |
 | Times | 30 |
 | Jogos distintos | 1.119 |
 | Período | 2025-10-21 a 2026-03-29 |
@@ -93,7 +94,7 @@ não gravam a base limpa; os registros removidos por duplicata aparecem em
 | Inconsistências encontradas | 0 |
 
 A base é internamente consistente: não há duplicata, ausente, negativo,
-percentual fora de [0, 1] ou violação aritmética. O pipeline cobre 27 regras,
+percentual fora de [0, 1] ou violação aritmética. O pipeline cobre 30 regras (incluindo regras de negócio como o limite de 82 jogos e 3PT ⊂ arremessos de quadra),
 incluindo as verificações entre as duas linhas do mesmo jogo. As regras são
 testadas com mutações sintéticas, para que a ausência de problemas na base
 real não seja confundida com ausência de verificação.

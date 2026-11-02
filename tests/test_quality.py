@@ -1,6 +1,8 @@
 """Testes das regras de qualidade, duplicatas e relatório."""
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -117,6 +119,24 @@ def mut_duplicata_time_data(df):
     return df
 
 
+def mut_contagem_nao_inteira(df):
+    return _mutar(df.astype({"AST": float}), 0, "AST", 25.5)
+
+
+def mut_tres_convertidos(df):
+    # FG3M > FGM, mantendo FG3M <= FG3A para isolar a regra.
+    df = _mutar(df, 0, "FG3A", 60)
+    return _mutar(df, 0, "FG3M", df.loc[df.index[0], "FGM"] + 1)
+
+
+def mut_tres_tentados(df):
+    return _mutar(df, 0, "FG3A", df.loc[df.index[0], "FGA"] + 1)
+
+
+def mut_limite_temporada(df):
+    return _mutar(df, 0, "L", config.JOGOS_TEMPORADA_REGULAR)
+
+
 def mut_duplicata_confronto_data(df):
     copia = df[df["Game_ID"] == 1].copy()
     copia["Game_ID"] = 99
@@ -149,6 +169,10 @@ CASOS = [
     ("minutos_divergente", mut_minutos_divergente, "minutos_divergente"),
     ("duplicata_time_data", mut_duplicata_time_data, "duplicata_time_data"),
     ("duplicata_confronto_data", mut_duplicata_confronto_data, "duplicata_confronto_data"),
+    ("contagem_nao_inteira", mut_contagem_nao_inteira, "contagem_nao_inteira"),
+    ("tres_convertidos", mut_tres_convertidos, "tres_maior_arremessos"),
+    ("tres_tentados", mut_tres_tentados, "tres_maior_arremessos"),
+    ("limite_temporada", mut_limite_temporada, "limite_temporada"),
 ]
 
 
@@ -246,3 +270,53 @@ def test_tratamento_idempotente(tmp_path):
     cleaning.executar_tratamento(caminho_limpo=p1)
     cleaning.executar_tratamento(caminho_limpo=p2)
     assert p1.read_bytes() == p2.read_bytes()
+
+
+def test_limite_temporada_por_numero_de_linhas(base):
+    """Mais de 82 linhas para um time viola a regra, mesmo sem olhar W/L."""
+    gsw = base[base["TEAM_NAME"] == "Golden State Warriors"]
+    extra = pd.concat([gsw] * 21, ignore_index=True)  # 84 linhas
+    extra["Game_ID"] = range(1000, 1000 + len(extra))
+    issues = cleaning.coletar_issues(tratar(pd.concat([base, extra], ignore_index=True)))
+    detalhes = set(issues.loc[issues["regra"] == "limite_temporada", "detalhe"])
+    assert any("jogos na base" in d for d in detalhes)
+
+
+def test_zero_nao_e_sinalizado(base):
+    """Zero é valor legítimo (ex.: jogo sem tocos/roubos) e não gera issue."""
+    bruto = base.copy()
+    bruto.loc[bruto.index[0], ["BLK", "STL"]] = 0
+    assert cleaning.coletar_issues(tratar(bruto)).empty
+
+
+def test_base_modelagem_gravada_sem_colunas_excluidas(base, tmp_path):
+    bruto = tmp_path / "raw.csv"
+    base.to_csv(bruto, index=False)
+    modelagem = tmp_path / "modelo.csv"
+    resultado = cleaning.executar_tratamento(
+        caminho_bruto=bruto, caminho_limpo=tmp_path / "clean.csv", caminho_modelagem=modelagem
+    )
+    gravada = pd.read_csv(modelagem)
+    assert len(gravada) == len(base)
+    assert not set(config.COLUNAS_EXCLUIDAS_MODELAGEM) & set(gravada.columns)
+    assert {"pontos", "vitoria", "em_casa"}.issubset(gravada.columns)
+    # a base limpa continua completa, para auditoria
+    assert set(config.COLUNAS_EXCLUIDAS_MODELAGEM).issubset(pd.read_csv(tmp_path / "clean.csv").columns)
+    resumo = resultado["resumo"]["modelagem"]
+    assert resumo["colunas"] == gravada.shape[1]
+    assert resumo["colunas_mantidas"] == list(gravada.columns)
+
+
+def test_base_modelagem_padrao_fica_ao_lado_da_limpa(base, tmp_path):
+    bruto = tmp_path / "raw.csv"
+    base.to_csv(bruto, index=False)
+    resultado = cleaning.executar_tratamento(caminho_bruto=bruto, caminho_limpo=tmp_path / "clean.csv")
+    assert Path(resultado["caminho_modelagem"]) == tmp_path / config.MODEL_CSV.name
+    assert (tmp_path / config.MODEL_CSV.name).exists()
+
+
+def test_calcular_nao_grava_modelagem(base, tmp_path):
+    bruto = tmp_path / "raw.csv"
+    base.to_csv(bruto, index=False)
+    cleaning.calcular_tratamento(caminho_bruto=bruto, caminho_limpo=tmp_path / "clean.csv")
+    assert not (tmp_path / config.MODEL_CSV.name).exists()

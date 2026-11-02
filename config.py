@@ -17,6 +17,7 @@ DATA_DIR = BASE_DIR / "data"
 RAW_CSV = DATA_DIR / "stats_times_regular_final.csv"
 CLEAN_DIR = DATA_DIR / "clean"
 CLEAN_CSV = CLEAN_DIR / "base_tratada.csv"
+MODEL_CSV = CLEAN_DIR / "base_modelagem.csv"  # base limpa sem COLUNAS_EXCLUIDAS_MODELAGEM
 STATIC_DIR = BASE_DIR / "dashboards" / "static"
 DOCS_DIR = BASE_DIR / "docs"
 
@@ -130,6 +131,29 @@ COLUNAS_NUMERICAS = [
     "pontos",
 ]
 
+# Colunas que são contagens de eventos: por regra de negócio só admitem
+# inteiros >= 0 (zero é válido — ex.: um jogo sem tocos).
+COLUNAS_CONTAGEM = [
+    "vitorias_acum",
+    "derrotas_acum",
+    "minutos",
+    "arremessos_conv",
+    "arremessos_tent",
+    "tres_pontos_conv",
+    "tres_pontos_tent",
+    "lances_livres_conv",
+    "lances_livres_tent",
+    "rebotes_ofensivos",
+    "rebotes_defensivos",
+    "rebotes",
+    "assistencias",
+    "roubos",
+    "tocos",
+    "erros",
+    "faltas",
+    "pontos",
+]
+
 COLUNAS_DERIVADAS = ["mes", "dia_semana", "em_casa", "prorrogacao", "adversario", "sigla"]
 
 # Versão para modelagem: remove identificadores e vazamento de informação.
@@ -149,6 +173,7 @@ COLUNAS_EXCLUIDAS_MODELAGEM = {
 K_IQR = 1.5                 # fator dos limites de Tukey (boxplot e outliers)
 Z_LIMIAR = 3.0              # |z| > 3 para z-score
 ALPHA_GRUBBS = 0.05         # nível de significância do teste de Grubbs
+JOGOS_TEMPORADA_REGULAR = 82  # cada time da NBA joga 82 partidas na temporada regular
 MINUTOS_REGULAMENTARES = 240
 MINUTOS_VALIDOS = (MINUTOS_REGULAMENTARES, 265, 290, 315, 340)  # regulamentar + prorrogações
 PONTOS_CESTA = 2            # pontos de um arremesso de quadra convertido

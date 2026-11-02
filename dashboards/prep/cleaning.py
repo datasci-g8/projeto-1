@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 import config
-from dashboards.prep.loader import carregar_bruto, tratar
+from dashboards.prep.loader import carregar_bruto, colunas_modelagem, tratar
 
 
 # ---------------------------------------------------------------------------
@@ -150,6 +150,21 @@ REGRAS: dict[str, Regra] = {
     "convertidos_maior_tentados": Regra(
         "convertidos_maior_tentados",
         "Arremessos convertidos maiores que os tentados.",
+        "sinalizar",
+    ),
+    "contagem_nao_inteira": Regra(
+        "contagem_nao_inteira",
+        "Contagem de eventos (pontos, rebotes, arremessos, W/L etc.) com valor fracionário.",
+        "sinalizar",
+    ),
+    "tres_maior_arremessos": Regra(
+        "tres_maior_arremessos",
+        "Arremessos de 3 (FG3M/FG3A) maiores que os arremessos de quadra (FGM/FGA), dos quais são subconjunto.",
+        "sinalizar",
+    ),
+    "limite_temporada": Regra(
+        "limite_temporada",
+        "Time com mais de 82 jogos na temporada regular (W+L > 82 ou mais de 82 linhas).",
         "sinalizar",
     ),
     "minutos_invalidos": Regra(
@@ -336,6 +351,30 @@ def coletar_issues(df: pd.DataFrame) -> pd.DataFrame:
     if mask.any():
         _add(issues, df, mask, "minutos_invalidos", "MIN fora de {240, 265, 290, 315, 340}")
 
+    # 3b) Regras de negócio (domínio do basquete). Zeros são válidos e não
+    # são sinalizados; só se restringe o que as regras do jogo proíbem.
+    for coluna in config.COLUNAS_CONTAGEM:
+        mask = df[coluna].notna() & (df[coluna] % 1 != 0)
+        if mask.any():
+            _add(issues, df, mask, "contagem_nao_inteira", f"'{coluna}' não é inteiro")
+
+    for tres, quadra in (
+        ("tres_pontos_conv", "arremessos_conv"),
+        ("tres_pontos_tent", "arremessos_tent"),
+    ):
+        mask = df[tres] > df[quadra]
+        if mask.any():
+            _add(issues, df, mask, "tres_maior_arremessos", f"{tres} > {quadra}")
+
+    limite = config.JOGOS_TEMPORADA_REGULAR
+    mask = (df["vitorias_acum"] + df["derrotas_acum"]) > limite
+    if mask.any():
+        _add(issues, df, mask, "limite_temporada", f"W+L > {limite}")
+    jogos_por_time = df.groupby("time", observed=True)["id_jogo"].transform("count")
+    mask = jogos_por_time > limite
+    if mask.any():
+        _add(issues, df, mask, "limite_temporada", f"time com mais de {limite} jogos na base")
+
     # 4) Acumulados
     denominador = (df["vitorias_acum"] + df["derrotas_acum"]).replace(0, np.nan)
     calculado = df["vitorias_acum"] / denominador
@@ -509,8 +548,14 @@ def resumo_qualidade(
     duplicatas: dict,
     caminho_limpo: Path | str,
     caminho_bruto: Path | str | None = None,
+    modelagem: pd.DataFrame | None = None,
+    caminho_modelagem: Path | str | None = None,
 ) -> dict:
     """Relatório antes/depois, pronto para JSON."""
+    if modelagem is None:
+        modelagem = colunas_modelagem(tratado)
+    if caminho_modelagem is None:
+        caminho_modelagem = _caminho_modelagem_padrao(caminho_limpo)
     linhas_com_flag = 0
     if not issues.empty:
         linhas_com_flag = int(
@@ -557,7 +602,18 @@ def resumo_qualidade(
             for chave, regra in REGRAS.items()
         ],
         "colunas_excluidas_modelagem": dict(config.COLUNAS_EXCLUIDAS_MODELAGEM),
+        "modelagem": {
+            "arquivo": _relativo(caminho_modelagem),
+            "linhas": len(modelagem),
+            "colunas": int(modelagem.shape[1]),
+            "colunas_mantidas": list(modelagem.columns),
+        },
     }
+
+
+def _caminho_modelagem_padrao(caminho_limpo: Path | str) -> Path:
+    """A base de modelagem fica ao lado da base limpa (data/clean por padrão)."""
+    return Path(caminho_limpo).parent / config.MODEL_CSV.name
 
 
 def salvar_tratado(df: pd.DataFrame, caminho: Path | str | None = None) -> Path:
@@ -571,6 +627,7 @@ def salvar_tratado(df: pd.DataFrame, caminho: Path | str | None = None) -> Path:
 def calcular_tratamento(
     caminho_bruto: Path | str | None = None,
     caminho_limpo: Path | str | None = None,
+    caminho_modelagem: Path | str | None = None,
 ) -> dict:
     """Executa o pipeline e devolve o resultado, sem gravar arquivo.
 
@@ -584,38 +641,58 @@ def calcular_tratamento(
         pd.concat([coletar_issues(tratado), _issues_duplicatas(duplicatas)], ignore_index=True)
     )
     caminho_limpo = Path(caminho_limpo) if caminho_limpo is not None else config.CLEAN_CSV
+    caminho_modelagem = (
+        Path(caminho_modelagem) if caminho_modelagem is not None
+        else _caminho_modelagem_padrao(caminho_limpo)
+    )
+    modelagem = colunas_modelagem(tratado)
     resumo = resumo_qualidade(
-        bruto, tratado, issues, duplicatas, caminho_limpo, caminho_bruto
+        bruto, tratado, issues, duplicatas, caminho_limpo, caminho_bruto,
+        modelagem, caminho_modelagem,
     )
     return {
         "bruto": bruto,
         "tratado": tratado,
+        "modelagem": modelagem,
         "issues": issues,
         "duplicatas": duplicatas,
         "resumo": resumo,
         "caminho_limpo": str(caminho_limpo),
+        "caminho_modelagem": str(caminho_modelagem),
     }
 
 
 def executar_tratamento(
     caminho_bruto: Path | str | None = None,
     caminho_limpo: Path | str | None = None,
+    caminho_modelagem: Path | str | None = None,
 ) -> dict:
-    """Pipeline completo, incluindo a gravação da base limpa.
+    """Pipeline completo, incluindo a gravação das bases limpa e de modelagem.
+
+    Grava duas saídas:
+
+    * base_tratada.csv — todas as colunas, para auditoria e análise descritiva;
+    * base_modelagem.csv — sem COLUNAS_EXCLUIDAS_MODELAGEM (identificadores,
+      acumulados com vazamento, minutos e data), pronta para ML/DL.
 
     A leitura sempre parte do CSV bruto; por isso rodar duas vezes produz
-    exatamente o mesmo arquivo limpo (idempotência do fluxo).
+    exatamente os mesmos arquivos (idempotência do fluxo).
     """
-    resultado = calcular_tratamento(caminho_bruto, caminho_limpo)
+    resultado = calcular_tratamento(caminho_bruto, caminho_limpo, caminho_modelagem)
     caminho_limpo = salvar_tratado(resultado["tratado"], resultado["caminho_limpo"])
+    caminho_modelagem = salvar_tratado(resultado["modelagem"], resultado["caminho_modelagem"])
     resultado["caminho_limpo"] = str(caminho_limpo)
+    resultado["caminho_modelagem"] = str(caminho_modelagem)
     resultado["resumo"]["base"]["arquivo_limpo"] = _relativo(caminho_limpo)
+    resultado["resumo"]["modelagem"]["arquivo"] = _relativo(caminho_modelagem)
     return resultado
 
 
 if __name__ == "__main__":
     resultado = executar_tratamento()
     print(f"Base limpa: {resultado['caminho_limpo']}")
+    print(f"Base de modelagem: {resultado['caminho_modelagem']} "
+          f"({resultado['resumo']['modelagem']['colunas']} colunas)")
     print(f"Linhas: {resultado['resumo']['antes']['linhas']} -> {resultado['resumo']['depois']['linhas']}")
     print(f"Issues: {resultado['resumo']['depois']['issues']}")
     print(resultado["issues"].to_string(index=False) if not resultado["issues"].empty else "Nenhuma inconsistência encontrada.")

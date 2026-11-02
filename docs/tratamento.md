@@ -93,6 +93,21 @@ não desaparece do relatório.
 | acumulado_ordem (W+L = número do jogo do time) | sinalizar |
 | acumulado_incremento (W/L crescem conforme os resultados) | sinalizar |
 
+### Regras de negócio (limites do domínio)
+
+Os limites vêm das regras do basquete/NBA, não de cortes estatísticos — valores
+extremos mas possíveis ficam para a análise de outliers.
+
+| Regra | Restrição | Decisão |
+|---|---|---|
+| contagem_nao_inteira | contagens (pontos, rebotes, arremessos, faltas, W, L, MIN…) só admitem inteiros | sinalizar |
+| tres_maior_arremessos | a cesta de 3 é um arremesso de quadra: FG3M ≤ FGM e FG3A ≤ FGA | sinalizar |
+| limite_temporada | a temporada regular tem 82 jogos por time: W+L ≤ 82 e no máximo 82 linhas por time | sinalizar |
+
+**Zeros não são sinalizados.** Zero é informação legítima no contexto: há
+35 linhas com W, L ou W_PCT = 0 (início da temporada), 33 jogos com BLK = 0
+e 1 jogo com STL = 0. Um teste garante que zero não gera issue.
+
 ### Domínio e identidade
 
 | Regra | Decisão |
@@ -140,7 +155,7 @@ pegam.
 | Linhas com flag | 0 | 0 |
 | Issues | 0 | 0 |
 
-Nenhuma das 27 regras foi violada. O resultado é consistente com a inspeção
+Nenhuma das 30 regras foi violada. O resultado é consistente com a inspeção
 manual: a base é internamente coerente, os IDs oficiais batem, os acumulados
 crescem um jogo por vez e as duas linhas de cada jogo concordam.
 
@@ -154,8 +169,9 @@ ausência de verificação.
 - calcular_tratamento() executa o pipeline e devolve o resultado, sem gravar
   arquivo. É a função usada pela API.
 - executar_tratamento() chama calcular_tratamento() e grava a base limpa em
-  data/clean/base_tratada.csv, com data em AAAA-MM-DD e sem índice. É a função
-  usada pelo CLI.
+  data/clean/base_tratada.csv e a base de modelagem em
+  data/clean/base_modelagem.csv, com data em AAAA-MM-DD e sem índice. É a
+  função usada pelo CLI.
 - A API cacheia o resultado pela assinatura do CSV (caminho, mtime e tamanho)
   e não grava em GET; se o arquivo mudar, o cache é invalidado.
 - executar_tratamento() sempre parte do CSV bruto, nunca da base limpa.
@@ -169,8 +185,9 @@ ausência de verificação.
 ### GET /api/quality/summary
 
 Retorna base (arquivo, times, jogos, período), antes, depois,
-duplicatas_removidas, por_regra, regras (com descrição e decisão) e
-colunas_excluidas_modelagem. É read-only: não grava a base limpa e usa cache
+duplicatas_removidas, por_regra, regras (com descrição e decisão),
+colunas_excluidas_modelagem e modelagem (arquivo, linhas, colunas e
+colunas_mantidas). É read-only: não grava a base limpa e usa cache
 invalidado por mtime/tamanho do CSV.
 
 ### GET /api/quality/issues
