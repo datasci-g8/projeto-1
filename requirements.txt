@@ -5,3 +5,4 @@ scipy>=1.11,<2
 scikit-learn>=1.4,<2
 pytest>=8,<9
 gunicorn>=22,<24
+plotly>=5.20,<6
