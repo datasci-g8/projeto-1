@@ -14,21 +14,32 @@ def _f(x, d=2) -> str:
     return f"{x:.{d}f}".replace(".", ",")
 
 
-def texto_descritiva(tab: pd.DataFrame, var: str) -> list[str]:
+def _tex(body: str) -> str:
+    return rf"\({body}\)"
+
+
+def _arrow() -> str:
+    return _tex(r"\Rightarrow")
+
+
+_REGRA_IQR = _tex(r"1{,}5 \times \mathrm{IQR}")
+
+
+def descriptive(tab: pd.DataFrame, var: str) -> list[str]:
     t = tab[tab["variavel"] == var].set_index("time")
     paragrafos = []
     for time, r in t.iterrows():
         paragrafos.append(
-            f"<b>{time}</b>: média de {_f(r['media'])} e mediana de {_f(r['mediana'])} "
+            f"<strong>{time}</strong>: média de {_f(r['media'])} e mediana de {_f(r['mediana'])} "
             f"{_r(var).lower()} por jogo (moda: {r['moda']}). "
             f"Os valores variam de {_f(r['minimo'], 0)} a {_f(r['maximo'], 0)} "
-            f"(amplitude {_f(r['amplitude'], 0)}), com desvio padrão de {_f(r['desvio_padrao'])}. "
-            f"A metade central dos jogos fica entre Q1 = {_f(r['q1'])} e Q3 = {_f(r['q3'])}. "
+            f"(amplitude {_f(r['amplitude'], 0)}), com desvio padrão {_tex('s')} = {_f(r['desvio_padrao'])}. "
+            f"A metade central dos jogos fica entre {_tex('Q_1')} = {_f(r['q1'])} e {_tex('Q_3')} = {_f(r['q3'])}. "
             + (
-                f"Pela regra 1,5×IQR há {r['n_outliers']} outlier(s): superiores "
-                f"{r['outliers_sup'] or '—'}, inferiores {r['outliers_inf'] or '—'}."
+                f"Pela regra {_REGRA_IQR} há {r['n_outliers']} outlier(s): superiores "
+                f"{r['outliers_sup'] or 'n/d'}, inferiores {r['outliers_inf'] or 'n/d'}."
                 if r["n_outliers"]
-                else "Não há outliers pela regra 1,5×IQR: todos os jogos ficam dentro dos limites do boxplot."
+                else f"Não há outliers pela regra {_REGRA_IQR}: todos os jogos ficam dentro dos limites do boxplot."
             )
         )
     if len(t) > 1:
@@ -36,17 +47,17 @@ def texto_descritiva(tab: pd.DataFrame, var: str) -> list[str]:
         menor = t["media"].idxmin()
         disp = t["desvio_padrao"].idxmax()
         paragrafos.append(
-            f"Comparando os times, <b>{maior}</b> tem a maior média ({_f(t.loc[maior, 'media'])}) "
-            f"e <b>{menor}</b> a menor ({_f(t.loc[menor, 'media'])}); "
+            f"Comparando os times, <strong>{maior}</strong> tem a maior média ({_f(t.loc[maior, 'media'])}) "
+            f"e <strong>{menor}</strong> a menor ({_f(t.loc[menor, 'media'])}); "
             f"a diferença é de {_f(t.loc[maior, 'media'] - t.loc[menor, 'media'])} "
             f"{_r(var).lower()} por jogo. "
-            f"<b>{disp}</b> é o time com maior variação jogo a jogo nessa estatística "
-            f"(DP = {_f(t.loc[disp, 'desvio_padrao'])})."
+            f"<strong>{disp}</strong> é o time com maior variação jogo a jogo nessa estatística "
+            f"({_tex('s')} = {_f(t.loc[disp, 'desvio_padrao'])})."
         )
     return paragrafos
 
 
-def texto_assimetria(tab: pd.DataFrame, var: str) -> dict:
+def skewness(tab: pd.DataFrame, var: str) -> dict:
     t = tab[tab["variavel"] == var].set_index("time")
     por_time = []
     for time, r in t.iterrows():
@@ -57,12 +68,13 @@ def texto_assimetria(tab: pd.DataFrame, var: str) -> dict:
             rel = "média < mediana, cauda à esquerda (alguns jogos com valores muito baixos)"
         else:
             rel = "média ≈ mediana"
+        g1_tex = _tex("G_1 = " + _f(g1, 3))
         por_time.append(
-            f"<b>{time}</b>: g1 = {_f(g1, 3)} → distribuição {r['direcao']}, "
-            f"intensidade <b>{r['intensidade']}</b> ({rel}). "
+            f"<strong>{time}</strong>: {g1_tex} {_arrow()} distribuição {r['direcao']}, "
+            f"intensidade <strong>{r['intensidade']}</strong> ({rel}). "
             f"Pearson 2 = {_f(r['pearson_2'], 3)} e Bowley = {_f(r['bowley'], 3)} "
             f"{'concordam no sinal' if (r['pearson_2'] >= 0) == (g1 >= 0) else 'divergem no sinal'}. "
-            f"Valor típico melhor representado pela <b>{r['representante']}</b>"
+            f"Valor típico melhor representado pela <strong>{r['representante']}</strong>"
             + (
                 ", e transformação logarítmica ou métodos robustos são recomendáveis."
                 if abs(g1) >= 1
@@ -80,26 +92,31 @@ def texto_assimetria(tab: pd.DataFrame, var: str) -> dict:
     )
     repete = [_r(v) for v, s in sinal.items() if s.startswith("mesmo")]
     geral = (
-        f"Entre as sete variáveis, as mais assimétricas são <b>{' e '.join(mais)}</b>; "
-        f"as mais simétricas são <b>{' e '.join(menos)}</b>. "
+        f"Entre as sete variáveis, as mais assimétricas são <strong>{' e '.join(mais)}</strong>; "
+        f"as mais simétricas são <strong>{' e '.join(menos)}</strong>. "
         f"O sinal se repete em todos os times para: "
         f"{', '.join(repete) if repete else 'nenhuma variável'}."
     )
     return {"por_time": por_time, "geral": geral}
 
 
-def texto_cv(tab: pd.DataFrame, var: str) -> dict:
+def cv(tab: pd.DataFrame, var: str) -> dict:
     t = tab[tab["variavel"] == var].set_index("time")
     por_time = []
     for time, r in t.iterrows():
         aviso = (
-            " <i>Atenção: média pequena (&lt; 10) — interprete o CV com cautela.</i>"
+            ' <span class="cautela">Atenção: média pequena (&lt; 10). Interprete o CV com cautela.</span>'
             if r["media_pequena"]
             else ""
         )
+        cv_tex = _tex("\\mathrm{CV} = " + _f(r["cv_pct"], 1) + "\\%")
+        cv_rob_tex = _tex(
+            "\\mathrm{CV}_{\\mathrm{rob}} = " + _f(r["cv_robusto_pct"], 1) + "\\%"
+        )
         por_time.append(
-            f"<b>{time}</b>: CV = {_f(r['cv_pct'], 1)}% → {r['classificacao']}. "
-            f"CV robusto (IQR/mediana) = {_f(r['cv_robusto_pct'], 1)}%.{aviso}"
+            f"<strong>{time}</strong>: {cv_tex} {_arrow()} "
+            f"{r['classificacao']}. "
+            f"{cv_rob_tex} (IQR/mediana).{aviso}"
         )
     piv = tab.pivot(index="variavel", columns="time", values="cv_pct")
     media_var = piv.mean(axis=1).sort_values()
@@ -109,40 +126,44 @@ def texto_cv(tab: pd.DataFrame, var: str) -> dict:
         v: (piv.loc[v].idxmin(), piv.loc[v].idxmax()) for v in piv.index
     }
     geral = (
-        f"Variáveis mais estáveis: <b>{' e '.join(estaveis)}</b>; "
-        f"mais dispersas: <b>{' e '.join(dispersas)}</b>. "
+        f"Variáveis mais estáveis: <strong>{' e '.join(estaveis)}</strong>; "
+        f"mais dispersas: <strong>{' e '.join(dispersas)}</strong>. "
         f"O CV compara escalas distintas; o DP bruto não seria comparável entre pontos e tocos."
     )
     if len(t) > 1:
         geral += (
-            f" Para <b>{_r(var)}</b>, o time mais regular é <b>{t['cv_pct'].idxmin()}</b> "
-            f"e o mais irregular é <b>{t['cv_pct'].idxmax()}</b>."
+            f" Para <strong>{_r(var)}</strong>, o time mais regular é <strong>{t['cv_pct'].idxmin()}</strong> "
+            f"e o mais irregular é <strong>{t['cv_pct'].idxmax()}</strong>."
         )
     return {"por_time": por_time, "geral": geral, "consistente": consistente}
 
 
-def texto_iqr(tab: pd.DataFrame, var: str) -> dict:
+def iqr(tab: pd.DataFrame, var: str) -> dict:
     t = tab[tab["variavel"] == var].set_index("time")
     por_time = []
     for time, r in t.iterrows():
+        iqr_tex = _tex("\\mathrm{IQR} = " + _f(r["iqr"]))
         por_time.append(
-            f"<b>{time}</b>: IQR = {_f(r['iqr'])} ({_r(var).lower()} por jogo). "
+            f"<strong>{time}</strong>: {iqr_tex} "
+            f"({_r(var).lower()} por jogo). "
             f"Amplitude/IQR = {_f(r['razao_amp_iqr'], 1)}; DP/IQR = {_f(r['razao_dp_iqr'], 2)}. "
-            f"Limites 1,5×IQR: [{_f(r['limite_inf'])}; {_f(r['limite_sup'])}] → "
+            f"Limites {_REGRA_IQR}: "
+            f"[{_f(r['limite_inf'])}; {_f(r['limite_sup'])}] {_arrow()} "
             f"{r['n_outliers']} outlier(s)."
         )
     geral = (
-        "A regra adotada foi 1,5×IQR, a mesma do boxplot; a lista de outliers coincide com os bigodes."
+        f"A regra adotada foi {_REGRA_IQR}, a mesma do boxplot; "
+        "a lista de outliers coincide com os bigodes."
     )
     if len(t) > 1:
         geral += (
-            f" Para <b>{_r(var)}</b>, o time mais concentrado é <b>{t['iqr'].idxmin()}</b> "
-            f"e o mais espalhado é <b>{t['iqr'].idxmax()}</b>."
+            f" Para <strong>{_r(var)}</strong>, o time mais concentrado é <strong>{t['iqr'].idxmin()}</strong> "
+            f"e o mais espalhado é <strong>{t['iqr'].idxmax()}</strong>."
         )
     return {"por_time": por_time, "geral": geral}
 
 
-def texto_sintese(
+def synthesis(
     med: pd.DataFrame, ass: pd.DataFrame, cv: pd.DataFrame, _iq: pd.DataFrame
 ) -> list[str]:
     paragrafos = []
@@ -152,15 +173,15 @@ def texto_sintese(
         c = cv[cv["time"] == time].set_index("variavel")
         a = ass[ass["time"] == time].set_index("variavel")
         paragrafos.append(
-            f"<b>{time}</b> — média de {_f(m.loc['pontos', 'media'], 1)} pontos por jogo. "
+            f"<strong>{time}</strong>: média de {_f(m.loc['pontos', 'media'], 1)} pontos por jogo. "
             f"CV mais baixo: {_r(c['cv_pct'].idxmin())}; mais alto: {_r(c['cv_pct'].idxmax())}. "
             f"Mais assimétrica: {_r(a['g1_fisher_pearson'].abs().idxmax())}. "
-            f"Outliers (1,5×IQR) nas sete variáveis: {int(m['n_outliers'].sum())}."
+            f"Outliers ({_REGRA_IQR}) nas sete variáveis: {int(m['n_outliers'].sum())}."
         )
     if len(times) > 1:
         cvm = cv.groupby("time")["cv_pct"].mean()
         paragrafos.append(
-            f"Time mais consistente (média dos CVs): <b>{cvm.idxmin()}</b> "
+            f"Time mais consistente (média dos CVs): <strong>{cvm.idxmin()}</strong> "
             f"({_f(cvm.min(), 1)}%)."
         )
     paragrafos.append(

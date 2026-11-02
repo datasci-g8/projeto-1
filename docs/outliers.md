@@ -1,4 +1,4 @@
-# Outliers (#3)
+# Outliers
 
 Código: `dashboards/analysis/outliers.py` · Rotas: `/api/outliers/summary`,
 `/api/outliers?method=&team=&modo=` · Testes: `tests/test_outliers.py`
@@ -10,14 +10,14 @@ Código: `dashboards/analysis/outliers.py` · Rotas: `/api/outliers/summary`,
 |---|---|---|
 | O que é | erro: viola regra aritmética ou de negócio | valor extremo, mas possível |
 | Exemplo | REB ≠ OREB + DREB; FG3M > FGM | 62 rebotes; 15 tocos em um jogo |
-| Onde | `dashboards/prep/cleaning.py` (#1) — **0 na base** | este módulo |
+| Onde | `dashboards/prep/cleaning.py` (limpeza) — **0 na base** | este módulo |
 | Decisão | sinalizar para correção | sinalizar e discutir; **nunca remover** aqui |
 
 ## 2. Recorte e convenções
 
 - Times: Golden State Warriors (75 jogos) e Orlando Magic (74), **separados**.
 - Variáveis: pontos, rebotes, assistências, roubos, tocos, faltas, cestas de 3.
-- Constantes em `config.py`, as mesmas da estatística descritiva (#4):
+- Constantes em `config.py`, as mesmas da estatística descritiva:
   |z| > 3; k = 1,5 no IQR; quartis por interpolação linear; α = 0,05;
   desvio amostral (ddof = 1).
 - **Interface comum:** todo método é `metodo(X: DataFrame) -> Series[bool]`.
@@ -150,16 +150,9 @@ ORL: os dois ficam dentro do padrão da liga.
   empíricas) e, no multivariado, destaca jogos extremos em várias colunas ao
   mesmo tempo (ex.: GSW 140 pts e 39 ast vs UTA), mas não combinações raras.
 
-## 5. Representação no frontend
+## 5. Painel web
 
-- **Heatmap coluna × método** (cor = contagem) a partir de `por_coluna`, com
-  seletor de time.
-- **Boxplot por variável** com os pontos marcados por cada método sobrepostos
-  (cores/formas diferentes) — mostra visualmente a concordância.
-- **Gráfico de k-distância** do DBSCAN (`dbscan[].k_distancias`) com a linha
-  horizontal do eps escolhido.
-- **Dispersão 2D** (PCA das 7 variáveis padronizadas, ou duas variáveis
-  escolhidas) colorida pelo método multivariado; tooltip com data,
-  adversário e valores, vindos de `/api/outliers?modo=multivariado`.
-- **Tabela de sensibilidade** com a amplitude destacada quando ≥ 5, como
-  alerta de instabilidade.
+A rota `/outliers` (e `/api/outliers*`) expõe tabelas por método (univariado e
+multivariado), consenso entre métodos, lista de outliers 1,5×IQR da variável
+selecionada e interpretação textual. Gráficos de boxplot e histograma com a
+regra IQR ficam em `/descriptive` e `/skewness`.

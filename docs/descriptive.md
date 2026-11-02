@@ -1,4 +1,4 @@
-# Estatística descritiva (#4)
+# Estatística descritiva
 
 Código: `dashboards/analysis/descriptive.py` · Rotas: `/api/descriptive/summary`,
 `/api/descriptive/outliers` · Testes: `tests/test_descriptive.py`
@@ -6,7 +6,8 @@ Código: `dashboards/analysis/descriptive.py` · Rotas: `/api/descriptive/summar
 
 ## 1. Objetivo e recorte
 
-Análise univariada por variável × time sobre a **base tratada** (saída da #1),
+Análise univariada por variável × time sobre a **base tratada** (saída do
+tratamento em `docs/treatment.md`),
 não sobre o CSV bruto. O recorte padrão é o Grupo 8: Golden State Warriors e
 Orlando Magic. As sete variáveis estão em `config.VARIAVEIS_ANALISE`.
 
@@ -22,7 +23,7 @@ Orlando Magic. As sete variáveis estão em `config.VARIAVEIS_ANALISE`.
 | Unidade | por jogo |
 
 A mesma `K_IQR` e o mesmo `limites_iqr` de `dashboards/analysis/outliers.py`
-são reutilizados, para a #3 e a #4 não divergirem na regra do boxplot.
+são reutilizados, para outliers e descritiva não divergirem na regra do boxplot.
 
 ## 3. O que cada tabela entrega
 
@@ -49,7 +50,7 @@ Cada ponto fora das cercas 1,5×IQR com data, adversário, local e lado
 
 ### Z-score entre times (`zscore_liga`)
 Z-score da **média** de cada time em relação às médias dos 30 times da liga,
-útil para o gráfico de barras comparativo do frontend (#6).
+útil para o gráfico de barras comparativas em `/descriptive`.
 
 ## 4. API
 
@@ -61,11 +62,11 @@ e z-scores da liga. Time fora do grupo ou variável inválida → 400.
 Lista os outliers 1,5×IQR com os mesmos filtros. A detecção multi-método
 continua em `/api/outliers`.
 
-## 5. Relação com os outros eixos
+## 5. Relação com o restante do projeto
 
-| Eixo | Papel |
+| Módulo | Papel |
 |---|---|
-| #1 qualidade | fornece a base tratada |
-| #3 outliers | métodos z/IQR/Grubbs/ECOD/KNN/LOF/DBSCAN |
-| #4 descritiva (este) | resumo estatístico + outliers do boxplot |
-| #6 frontend | consome estas rotas para tabelas e gráficos |
+| Tratamento (`docs/treatment.md`) | fornece a base tratada |
+| Outliers (`docs/outliers.md`) | detecção multimetodo (z, IQR, Grubbs, ECOD, K-NN, LOF, DBSCAN) |
+| Descritiva (este doc) | medidas, assimetria, CV, IQR e outliers 1,5×IQR do boxplot |
+| Painel web | rotas `/descriptive`, `/skewness`, `/cv`, `/iqr`, `/synthesis` e API JSON acima |

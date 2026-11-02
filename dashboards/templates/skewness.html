@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% from "_report.html" import metodo, interpretacao_paragrafos, interpretacao_html %}{% block titulo %}Assimetria{% endblock %}{% block conteudo %}
+<h2>1. Método</h2>
+{{ metodo("<strong>Fórmula.</strong> Assimetria Fisher–Pearson ajustada \\(G_1\\), com correção para amostra finita (~75 jogos por time). Na tabela também constam Pearson (2) e Bowley. <strong>Intensidade (\\(|G_1|\\)):</strong> \\(&lt; 0{,}5\\) simétrica; \\(0{,}5\\)–\\(1\\) moderada; \\(\\geq 1\\) forte.") }}
+<h2>2. {{ rotulos[var_sel] }} por time</h2>{{ tabela|safe }}
+{{ interpretacao_paragrafos(txt.por_time) }}
+<h2>3. Histograma e boxplot</h2>{{ hist|safe }}{{ boxplot|safe }}
+{{ interpretacao_html("<p>\\(G_1 &gt; 0\\): cauda à direita e média acima da mediana no gráfico. \\(G_1 \\approx 0\\): distribuição equilibrada. Se \\(G_1\\) e Bowley divergem, outliers podem estar distorcendo o \\(G_1\\).</p>") }}
+<h2>4. Comparação entre variáveis e times</h2>
+<h3>Quadro-resumo do G1</h3>{{ quadro|safe }}
+{{ interpretacao_paragrafos([txt.geral, "Com assimetria relevante, a mediana descreve melhor o jogo típico que a média."]) }}
+<h3>Todas as variáveis e times</h3>{{ tabela_todas|safe }}
+{% endblock %}

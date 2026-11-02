@@ -10,6 +10,13 @@ import config
 MECANISMOS = ("MCAR", "MAR", "MNAR")
 TESTES = ("little", "jamshidian_jalal", "listing_schlittgen", "fairclough")
 
+ROTULOS_TESTES = {
+    "little": "Little (teste MCAR)",
+    "jamshidian_jalal": "Jamshidian–Jalal",
+    "listing_schlittgen": "Listing e Schlittgen",
+    "fairclough": "Regressão logística (Fairclough)",
+}
+
 NOME_ORIGINAL = {novo: original for original, novo in config.RENOMEAR.items()}
 VARIAVEIS_ORIGINAIS = [NOME_ORIGINAL[v] for v in config.VARIAVEIS_ANALISE]
 

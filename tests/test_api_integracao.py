@@ -43,15 +43,25 @@ def test_descriptive_parametro_invalido(client):
     assert client.get("/api/descriptive/summary?team=Time+Fantasma").status_code == 400
 
 
+def test_consenso_multivariado_vazio_tem_esquema():
+    from dashboards.api.quality import resultado_atual
+    from dashboards.web.panel import _consenso_multivariado
+
+    df = resultado_atual()["tratado"]
+    vazio = _consenso_multivariado(df, ())
+    assert list(vazio.columns) == ["time", "indice", "n_metodos"]
+    assert vazio.empty
+
+
 def test_paginas_html(client):
     for rota in (
         "/",
-        "/qualidade",
+        "/quality",
         "/outliers",
-        "/descritiva",
-        "/assimetria",
+        "/descriptive",
+        "/skewness",
         "/cv",
         "/iqr",
-        "/sintese",
+        "/synthesis",
     ):
         assert client.get(rota).status_code == 200

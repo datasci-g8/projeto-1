@@ -1,4 +1,4 @@
-# Valores ausentes (#2)
+# Valores ausentes
 
 Código: `dashboards/analysis/missing.py` · Rotas: `/api/missing/summary`, `/api/missing/tests`
 · Testes: `tests/test_missing.py` · Rodar: `python -m dashboards.analysis.missing`
@@ -119,14 +119,10 @@ Leitura:
    MAR** — os testes não sabem dizer qual dos dois é. Se a variável ausente
    não tivesse correlação com nenhuma observada, o MNAR passaria invisível.
 
-## 6. Representação visual (frontend)
+## 6. Painel web
 
-- **Barras por coluna** com o percentual de ausentes (hoje, todas zeradas —
-  mostrar a mensagem "base completa" em vez de um gráfico vazio).
-- **Matriz de padrões** (linhas × colunas, célula escura = ausente), no estilo
-  `missingno.matrix`; útil para ver colunas que faltam juntas.
-- **Tabela dos testes** com o p-valor e um selo "rejeita / não rejeita /
-  não aplicável" (dados de `/api/missing/tests`); hoje os quatro aparecem
-  como "não aplicável".
-- Se a base passar a ter ausentes, **barras dos z de Fairclough** por
-  variável, destacando a que mais explica a falta.
+A rota `/quality` mostra a contagem de ausentes por coluna (base bruta),
+a conclusão textual, as verificações de limpeza e a tabela dos testes MCAR
+(`GET /api/missing/tests`). Com a base completa, os testes aparecem como
+não aplicáveis ou não rejeitam MCAR, conforme `docs/missing.md` e o código
+em `dashboards/analysis/missing.py`.

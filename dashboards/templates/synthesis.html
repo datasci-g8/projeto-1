@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% from "_report.html" import interpretacao_paragrafos %}{% block titulo %}Síntese{% endblock %}{% block conteudo %}
+<h2>1. Síntese</h2>
+{{ interpretacao_paragrafos(paragrafos, rotulo='') }}
+<h2>2. Quadros-resumo</h2>
+<div class="grid2"><div><h3>CV (%)</h3>{{ quadro_cv|safe }}</div><div><h3>IQR</h3>{{ quadro_iqr|safe }}</div><div><h3>Assimetria G1</h3>{{ quadro_ass|safe }}</div><div><h3>Nº de outliers (1,5×IQR)</h3>{{ quadro_out|safe }}</div></div>
+{% endblock %}

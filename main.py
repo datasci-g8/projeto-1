@@ -2,7 +2,7 @@
 
 Flask é a sugestão do enunciado e permite reaproveitar o painel já existente.
 A camada de dados é independente do framework; a justificativa está em
-docs/tratamento.md e no README.
+docs/treatment.md e no README.
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from dashboards.api.descriptive import bp as descriptive_bp
 from dashboards.api.missing import bp as missing_bp
 from dashboards.api.outliers import bp as outliers_bp
 from dashboards.api.quality import bp as quality_bp
-from dashboards.web.painel import registrar_painel
+from dashboards.web.panel import register_panel
 
 
 def _caminho_bruto_relativo() -> str:
@@ -33,12 +33,15 @@ def create_app() -> Flask:
         static_url_path="/static",
         template_folder=str(config.TEMPLATES_DIR),
     )
+    # Desenvolvimento: recarrega templates/CSS sem reiniciar o processo.
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
+    app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
     app.register_blueprint(quality_bp, url_prefix="/api/quality")
     app.register_blueprint(missing_bp, url_prefix="/api/missing")
     app.register_blueprint(outliers_bp, url_prefix="/api/outliers")
     app.register_blueprint(descriptive_bp, url_prefix="/api/descriptive")
 
-    registrar_painel(app)
+    register_panel(app)
 
     @app.get("/api/health")
     def health():
@@ -60,8 +63,12 @@ app = create_app()
 
 
 if __name__ == "__main__":
+    _debug = os.environ.get("FLASK_DEBUG", "1") == "1"
+    if _debug:
+        print("Modo desenvolvimento: templates e /static/ sem cache. Reinicie se algo não atualizar.")
     app.run(
         host="0.0.0.0",
         port=int(os.environ.get("PORT", "5000")),
-        debug=os.environ.get("FLASK_DEBUG") == "1",
+        debug=_debug,
+        use_reloader=_debug,
     )

@@ -26,7 +26,7 @@ script de análise sem mudança.
 
 | Caminho | Conteúdo |
 |---|---|
-| main.py | aplicação Flask, API JSON e painel web (templates) |
+| main.py | aplicação Flask, API JSON e painel web |
 | config.py | caminhos, times do grupo, variáveis, renomeação e constantes |
 | dashboards/prep/loader.py | leitura, validação das 28 colunas, tipagem, data e colunas derivadas |
 | dashboards/prep/cleaning.py | duplicatas, 30 regras de inconsistência, registros afetados, relatório, base limpa e base de modelagem |
@@ -38,17 +38,19 @@ script de análise sem mudança.
 | dashboards/analysis/descriptive.py | medidas, assimetria, CV, IQR e outliers 1,5×IQR por variável × time |
 | dashboards/api/descriptive.py | rotas /api/descriptive/summary e /outliers |
 | dashboards/analysis/plots.py | boxplot, barras comparativas, histograma + KDE (Plotly) |
-| dashboards/analysis/texto.py | interpretações textuais geradas a partir dos resultados |
-| dashboards/web/painel.py | rotas HTML do relatório (/qualidade, /descritiva, …) |
+| dashboards/analysis/narrative.py | interpretações textuais geradas a partir dos resultados |
+| dashboards/web/panel.py | rotas HTML do relatório (/quality, /descriptive, …) |
 | dashboards/templates/ | seções navegáveis do relatório web |
 | dashboards/static/style.css | estilos do painel |
+| dashboards/static/plotly.min.js | Plotly.js (mesma versão do pacote Python) |
+| dashboards/theme.py | cores GSW/ORL e layout dos gráficos |
+| dashboards/web/report_tables.py | tabelas HTML com cabeçalhos em português |
 | tests/ | fixtures sintéticas e testes do loader, das regras e da API |
 | data/ | CSV bruto (não alterar), data/clean/base_tratada.csv e data/clean/base_modelagem.csv (gerados) |
-| docs/tratamento.md | regras, decisões, justificativas e contrato da API |
-| docs/ausentes.md | teoria dos mecanismos e dos testes de MCAR, resultado na base original e validação |
-| docs/outliers.md | teoria de cada método, resultados e comparação entre métodos |
-| docs/descriptive.md | convenções da descritiva, tabelas e contrato da API |
-| docs/conformidade_enunciado.md | checklist do enunciado com referências ao código |
+| docs/treatment.md | regras, decisões, justificativas e contrato da API |
+| docs/missing.md | mecanismos de ausência, testes MCAR e contrato da API |
+| docs/outliers.md | métodos de detecção, resultados e contrato da API |
+| docs/descriptive.md | convenções da descritiva e contrato da API |
 
 ## Como rodar
 
@@ -121,13 +123,14 @@ incluindo as verificações entre as duas linhas do mesmo jogo. As regras são
 testadas com mutações sintéticas, para que a ausência de problemas na base
 real não seja confundida com ausência de verificação.
 
-## Deploy público (Classroom)
+## Deploy público
 
-1. Suba o repositório no GitHub (`datasci-g8/projeto-1`).
-2. Na plataforma (Render, Railway ou PythonAnywhere), crie um serviço web Python:
+1. Repositório no GitHub (`datasci-g8/projeto-1`).
+2. Serviço web Python (Render, Railway, PythonAnywhere, etc.):
    - Build: `pip install -r requirements.txt`
    - Start: `gunicorn -b 0.0.0.0:$PORT main:app`
-   - Inclua o arquivo `data/stats_times_regular_final.csv` no deploy.
-3. Informe a URL pública no Google Classroom.
+   - Incluir `data/stats_times_regular_final.csv` e `dashboards/static/plotly.min.js`.
+3. Testar `/`, `/descriptive` e `/outliers` antes de publicar.
+4. Informar no Google Classroom o link do repositório **e** a URL pública do painel.
 
-CI: o workflow `.github/workflows/pytest.yml` executa `pytest -q` em push/PR para `main`.
+CI: `.github/workflows/pytest.yml` executa `pytest -q` em push/PR para `main`.

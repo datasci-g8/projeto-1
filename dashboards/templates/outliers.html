@@ -1,11 +1,12 @@
-{% extends "base.html" %}{% block titulo %}Outliers{% endblock %}{% block conteudo %}
-<h2>1. Teoria dos métodos implementados</h2>
-<dl>{% for nome, txt in teoria.items() %}<dt><b>{{ nome }}</b></dt><dd>{{ txt }}</dd>{% endfor %}</dl>
-<p class="nota">Z-score, IQR e Grubbs são <b>univariados</b> (uma variável por vez, por time). ECOD, K-NN, DBSCAN e LOF são <b>multivariados</b>: cada jogo é um ponto em 7 dimensões (as variáveis de análise padronizadas), por time. Contaminação fixada em 5% para K-NN, LOF e ECOD, para tornar as contagens comparáveis.</p>
-<h2>2. Outliers univariados por variável e por time</h2>{{ uni|safe }}
-<div class="interp"><p>Z-score (|z| &gt; 3) é o critério mais conservador e quase nunca marca pontos em amostras de ~75 jogos; a regra 1,5×IQR é mais sensível e é a adotada no boxplot e nas demais seções. Grubbs, por assumir normalidade e testar um ponto por vez, tende a concordar com o z-score. As variáveis com mais outliers são as de contagem baixa e assimétrica (tocos, roubos, cestas de 3) e rebotes; pontos e faltas raramente apresentam valores extremos.</p></div>
-<h3>Quais são os outliers (1,5×IQR) em {{ rotulos[var_sel] }}</h3>{{ lista|safe }}
-<h2>3. Outliers multivariados (jogos anômalos no conjunto das 7 variáveis)</h2>{{ multi|safe }}
-<h3>Jogos marcados por 2 ou mais métodos (consenso)</h3>{{ consenso|safe }}
-<div class="interp"><p>Os métodos multivariados apontam jogos cujo <i>perfil conjunto</i> é incomum (ex.: muitos pontos com poucas assistências, ou tocos e roubos altos ao mesmo tempo), mesmo quando nenhuma variável isolada é extrema. O consenso entre métodos (≥ 2) é um critério mais confiável do que qualquer método sozinho. Esses jogos são eventos reais (prorrogações, goleadas, jogos atípicos) e devem ser mantidos na base; o tratamento adequado é usar medidas robustas (mediana, IQR) e, em modelagem, considerar transformações ou modelos robustos.</p></div>
+{% extends "base.html" %}{% from "_report.html" import intro, interpretacao_html, legenda %}{% block titulo %}Outliers{% endblock %}{% block conteudo %}
+<h2>1. Métodos de detecção</h2>
+{{ intro("Sete métodos univariados e multivariados por time; consenso quando ≥ 2 métodos marcam o mesmo jogo.") }}
+<table class="tabela tabela-texto"><tr><th>Método</th><th>Descrição</th></tr>{% for nome, txt in teoria.items() %}<tr><td>{{ nome }}</td><td>{{ txt }}</td></tr>{% endfor %}</table>
+{{ legenda("Z-score, IQR e Grubbs são <strong>univariados</strong> (uma variável por vez, por time). ECOD, K-NN, DBSCAN e LOF são <strong>multivariados</strong>: cada jogo é um ponto em 7 dimensões (variáveis padronizadas), por time. Contaminação fixada em 5% para K-NN, LOF e ECOD.") }}
+<h2>2. Outliers univariados</h2>{{ uni|safe }}
+{{ interpretacao_html("<p>Z-score (|z| &gt; 3) é o critério mais conservador e quase nunca marca pontos em amostras de ~75 jogos; a regra 1,5×IQR é mais sensível e é a adotada no boxplot e nas demais seções. Grubbs, por assumir normalidade e testar um ponto por vez, tende a concordar com o z-score. As variáveis com mais outliers são as de contagem baixa e assimétrica (tocos, roubos, cestas de 3) e rebotes; pontos e faltas raramente apresentam valores extremos.</p>") }}
+<h3>Outliers (1,5×IQR) em {{ rotulos[var_sel] }}</h3>{{ lista|safe }}
+<h2>3. Outliers multivariados</h2>{{ multi|safe }}
+<h3>Consenso (≥ 2 métodos)</h3>{{ consenso|safe }}
+{{ interpretacao_html("<p>Os métodos multivariados apontam jogos cujo <em>perfil conjunto</em> é incomum (ex.: muitos pontos com poucas assistências, ou tocos e roubos altos ao mesmo tempo), mesmo quando nenhuma variável isolada é extrema. O consenso entre métodos (≥ 2) é um critério mais confiável do que qualquer método sozinho. Esses jogos são eventos reais (prorrogações, goleadas, jogos atípicos) e devem ser mantidos na base; o tratamento adequado é usar medidas robustas (mediana, IQR) e, em modelagem, considerar transformações ou modelos robustos.</p>") }}
 {% endblock %}

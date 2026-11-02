@@ -1,16 +1,14 @@
-{% extends "base.html" %}{% block titulo %}Coeficiente de variação{% endblock %}{% block conteudo %}
+{% extends "base.html" %}{% from "_report.html" import metodo, interpretacao_paragrafos, legenda %}{% block titulo %}Coeficiente de variação{% endblock %}{% block conteudo %}
 <h2>1. Método</h2>
-<div class="caixa"><b>Fórmula:</b> CV = s / x̄ × 100, com <b>s amostral (n−1)</b>, resultado em <b>percentual</b> — a mesma convenção do desvio padrão nas demais seções. <b>Alternativa robusta:</b> CV<sub>rob</sub> = IQR / mediana × 100.<br>
-<b>Condições de validade:</b> a variável deve ser de razão (zero absoluto e intervalos iguais: todas as sete são contagens por jogo, logo são de razão) e a média deve ser positiva e distante de zero. Para <b>tocos (≈ 4–5) e roubos (≈ 8–10)</b> a média é pequena: uma variação de ±2 tocos, pequena em termos absolutos, representa ±40%, inflando o CV. Nesses casos o CV deve ser lido com cautela e comparado ao CV robusto.<br>
-<b>Classificação adotada:</b> CV &lt; 15% baixa dispersão; 15–30% média; &gt; 30% alta (critério usual em estatística descritiva).</div>
+{{ metodo("<strong>Fórmulas.</strong> \\( \\mathrm{CV} = \\dfrac{s}{\\bar{x}} \\times 100\\% \\), com \\(s\\) amostral (\\(n-1\\)). CV robusto: \\( \\mathrm{CV}_{\\mathrm{rob}} = \\dfrac{\\mathrm{IQR}}{\\mathrm{mediana}} \\times 100\\% \\). Faixas: \\(\\mathrm{CV} &lt; 15\\%\\) baixa dispersão; \\(15\\%\\)–\\(30\\%\\) média; \\(&gt; 30\\%\\) alta. Em médias pequenas (ex.: tocos), prefira o CV robusto.") }}
 <h2>2. {{ rotulos[var_sel] }} por time</h2>{{ tabela|safe }}
-<div class="interp">{% for p in txt.por_time %}<p>{{ p|safe }}</p>{% endfor %}</div>
-<h2>3. Quadro-resumo: CV (%) — linhas = variáveis, colunas = times</h2>
+{{ interpretacao_paragrafos(txt.por_time) }}
+<h2>3. Quadro-resumo do CV (%)</h2>
 <div class="grid2"><div><h3>CV clássico (s/x̄)</h3>{{ quadro|safe }}</div><div><h3>CV robusto (IQR/mediana)</h3>{{ quadro_rob|safe }}</div></div>
-<div class="interp"><p>{{ txt.geral|safe }}</p></div>
-<h3>Time mais consistente / mais irregular por variável</h3>
-<table class="tabela"><tr><th>variável</th><th>mais consistente (menor CV)</th><th>mais irregular (maior CV)</th></tr>{% for v,(a,b) in txt.consistente.items() %}<tr><td>{{ rotulos[v] }}</td><td>{{ a }}</td><td>{{ b }}</td></tr>{% endfor %}</table>
+{{ interpretacao_paragrafos([txt.geral]) }}
+<h3>Time mais consistente e mais irregular por variável</h3>
+<table class="tabela tabela-texto"><tr><th>Variável</th><th>Mais consistente (menor CV)</th><th>Mais irregular (maior CV)</th></tr>{% for v,(a,b) in txt.consistente.items() %}<tr><td>{{ rotulos[v] }}</td><td>{{ a }}</td><td>{{ b }}</td></tr>{% endfor %}</table>
 <h2>4. Confronto com desvio padrão e assimetria</h2>
-<div class="grid2"><div><h3>Assimetria G1</h3>{{ quadro_ass|safe }}</div><div><p>O DP bruto é maior em pontos (≈ 12–13) do que em tocos (≈ 2–3), mas isso reflete a escala, não a irregularidade: em termos relativos, tocos é muito mais instável. Quando a assimetria é forte (|G1| ≥ 1), a média é deslocada pela cauda e o DP é inflado pelos mesmos extremos; o CV, razão dos dois, fica contaminado. O CV robusto, que usa mediana e IQR, deve então ser a medida preferida — e as duas versões divergem mais exatamente nas variáveis assimétricas e de média pequena.</p></div></div>
+<div class="grid2"><div><h3>Assimetria G1</h3>{{ quadro_ass|safe }}</div><div>{{ legenda("Desvio padrão bruto depende da escala da variável; o CV compara dispersão relativa. Com assimetria forte, média e s são puxados pela cauda — o CV robusto reduz esse efeito.") }}</div></div>
 <h3>Todas as variáveis e times</h3>{{ tabela_todas|safe }}
 {% endblock %}

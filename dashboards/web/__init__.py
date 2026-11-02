@@ -1,1 +1,1 @@
-"""Rotas HTML do relatório web (issue #6)."""
+"""Pacote das rotas HTML do relatório web."""
