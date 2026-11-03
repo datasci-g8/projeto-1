@@ -11,7 +11,9 @@ import os
 from flask import Flask, jsonify, send_from_directory
 
 import config
+from dashboards.api.missing import bp as missing_bp
 from dashboards.api.quality import bp as quality_bp
+from dashboards.api.routes_outliers import bp as outliers_bp
 
 
 def _caminho_bruto_relativo() -> str:
@@ -29,6 +31,8 @@ def create_app() -> Flask:
         static_url_path="/static",
     )
     app.register_blueprint(quality_bp, url_prefix="/api/quality")
+    app.register_blueprint(missing_bp, url_prefix="/api/missing")
+    app.register_blueprint(outliers_bp, url_prefix="/api/outliers")
 
     @app.get("/")
     def index():

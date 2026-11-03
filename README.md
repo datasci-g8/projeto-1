@@ -31,10 +31,15 @@ script de análise sem mudança.
 | dashboards/prep/loader.py | leitura, validação das 28 colunas, tipagem, data e colunas derivadas |
 | dashboards/prep/cleaning.py | duplicatas, 30 regras de inconsistência, registros afetados, relatório, base limpa e base de modelagem |
 | dashboards/api/quality.py | rotas /api/quality/summary, /issues, /regras e /api/health |
+| dashboards/analysis/missing.py | ausentes por coluna/time e padrões na base original; testes de Little, Jamshidian-Jalal, Listing-Schlittgen e Fairclough |
+| dashboards/analysis/outliers.py | z-score, IQR, Grubbs, ECOD, K-NN, LOF e DBSCAN com interface comum |
+| dashboards/api/missing.py, routes_outliers.py | rotas /api/missing/* e /api/outliers* |
 | dashboards/static/index.html | página inicial mínima com links para a API |
 | tests/ | fixtures sintéticas e testes do loader, das regras e da API |
 | data/ | CSV bruto (não alterar), data/clean/base_tratada.csv e data/clean/base_modelagem.csv (gerados) |
 | docs/tratamento.md | regras, decisões, justificativas e contrato da API |
+| docs/ausentes.md | teoria dos mecanismos e dos testes de MCAR, resultado na base original e validação |
+| docs/outliers.md | teoria de cada método, resultados e comparação entre métodos |
 
 ## Como rodar
 
@@ -68,6 +73,10 @@ base não tem inconsistências e que a base limpa é idempotente.
 | GET /api/quality/summary | relatório antes/depois, contagem por regra e decisões |
 | GET /api/quality/issues | registros afetados; aceita ?regra= e ?time= |
 | GET /api/quality/regras | catálogo de regras e decisão adotada |
+| GET /api/missing/summary | ausentes por coluna, por time e padrões de ausência |
+| GET /api/missing/tests | testes de MCAR sobre a base original |
+| GET /api/outliers/summary | tabela coluna × método, multivariado, normalidade, sensibilidade |
+| GET /api/outliers | registros marcados; ?method=, ?team=, ?modo=coluna\|multivariado |
 
 Exemplo:
 
@@ -101,9 +110,6 @@ real não seja confundida com ausência de verificação.
 
 ## Próximos passos
 
-- Análise de valores ausentes: Little, Fairclough, Jamshidian-Jalal e
-  Listing-Schlittgen.
-- Detecção de outliers: z-score, IQR, Grubbs, ECOD, K-NN, DBSCAN e LOF.
 - Estatística descritiva, assimetria, coeficiente de variação e IQR.
 - Painel completo com dicionário, tabelas, boxplot, barras, histogramas e
   síntese interpretativa.
