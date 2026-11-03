@@ -1,0 +1,27 @@
+{# Texto do relatório: Source Serif 4 (.texto-exp). Rótulo INTERPRETAÇÃO só após tabela/gráfico; se o h2 já nomeia a seção, use rotulo=''. #}
+
+{% macro metodo(texto) %}
+<p class="texto-exp">{{ texto|safe }}</p>
+{% endmacro %}
+
+{% macro intro(texto) %}
+<p class="texto-exp">{{ texto|safe }}</p>
+{% endmacro %}
+
+{% macro interpretacao_paragrafos(paragrafos, rotulo='Interpretação', largura_total=false) %}
+<div class="bloco-interp{{ ' bloco-interp--wide' if largura_total else '' }}">
+{% if rotulo %}<p class="texto-exp-rotulo">{{ rotulo }}</p>{% endif %}
+{% for p in paragrafos %}<p class="texto-exp">{{ p|safe }}</p>{% endfor %}
+</div>
+{% endmacro %}
+
+{% macro interpretacao_html(conteudo, rotulo='Interpretação', largura_total=false) %}
+<div class="bloco-interp{{ ' bloco-interp--wide' if largura_total else '' }}">
+{% if rotulo %}<p class="texto-exp-rotulo">{{ rotulo }}</p>{% endif %}
+<div class="texto-exp texto-exp--bloco">{{ conteudo|safe }}</div>
+</div>
+{% endmacro %}
+
+{% macro legenda(texto) %}
+<p class="texto-exp texto-exp--legenda"><span class="legenda__rotulo">Legenda.</span> {{ texto|safe }}</p>
+{% endmacro %}

@@ -1,4 +1,4 @@
-"""Testes da análise de ausentes (#2)."""
+"""Testes da análise de ausentes."""
 from __future__ import annotations
 
 import numpy as np

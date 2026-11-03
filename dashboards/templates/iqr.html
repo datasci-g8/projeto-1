@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% from "_report.html" import metodo, interpretacao_paragrafos, interpretacao_html %}{% block titulo %}IQR{% endblock %}{% block conteudo %}
+<h2>1. Método</h2>
+{{ metodo("<strong>Fórmulas.</strong> \\( \\mathrm{IQR} = Q_3 - Q_1 \\), quartis por interpolação linear (tabelas, boxplot e outliers). Limites Tukey (\\(k=1{,}5\\)): \\( Q_1 - 1{,}5 \\times \\mathrm{IQR} \\) e \\( Q_3 + 1{,}5 \\times \\mathrm{IQR} \\).") }}
+<h2>2. {{ rotulos[var_sel] }} por time</h2>{{ tabela|safe }}
+{{ interpretacao_paragrafos(txt.por_time) }}
+<h3>Conferência: outliers listados e boxplot</h3>{{ lista|safe }}{{ boxplot|safe }}
+<h2>3. Quadro-resumo do IQR</h2>{{ quadro|safe }}
+{{ interpretacao_paragrafos([txt.geral]) }}
+<h2>4. Assimetria e CV</h2>
+<div class="grid2"><div><h3>CV (%)</h3>{{ quadro_cv|safe }}</div><div><h3>Assimetria G1</h3>{{ quadro_ass|safe }}</div></div>
+{{ interpretacao_html("<p>Onde a assimetria é forte, amplitude e desvio padrão crescem com a cauda, enquanto o IQR descreve melhor a dispersão típica. O \\( \\mathrm{CV}_{\\mathrm{rob}} = \\mathrm{IQR}/\\mathrm{mediana} \\) normaliza o IQR pela escala.</p>") }}
+<h3>Todas as variáveis e times</h3>{{ tabela_todas|safe }}
+{% endblock %}

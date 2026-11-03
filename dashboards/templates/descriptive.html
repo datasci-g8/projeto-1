@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% from "_report.html" import intro, interpretacao_paragrafos, interpretacao_html, legenda %}{% block titulo %}Medidas descritivas{% endblock %}{% block conteudo %}
+<h2>1. Medidas de {{ rotulos[var_sel] }}</h2>
+{{ intro("Tendência central, dispersão, quartis e outliers (1,5×IQR) por time; DP amostral (n−1) e quartis por interpolação linear.") }}
+{{ medidas_var|safe }}
+{{ interpretacao_paragrafos(interpretacao) }}
+<h3>Outliers (jogo, data, adversário, valor)</h3>{{ lista|safe }}
+<h2>2. Boxplot</h2>{{ boxplot|safe }}
+{{ legenda("Outliers superiores (pontos acima), limite superior (Q3 + 1,5×IQR, pontilhado), Q3 (topo da caixa), média (tracejado interno), mediana (linha cheia), moda (losango), Q1 (base da caixa), limite inferior (pontilhado) e outliers inferiores. Valores exatos na anotação ao lado de cada time.") }}
+<section class="section-data">
+<h2>3. Barras comparativas</h2>
+{{ barras|safe }}
+{{ interpretacao_html("<p><strong>Z-score.</strong> As sete variáveis têm escalas muito diferentes (pontos ≈ 115, tocos ≈ 5), então as barras brutas (esquerda) só permitem comparar times <em>dentro</em> de cada variável. No painel direito, \\( z = \\dfrac{\\bar{x}_{\\mathrm{time}} - \\bar{x}_{\\mathrm{liga}}}{s_{\\mathrm{ligas}}} \\); \\(z = +1\\) significa um desvio padrão acima da liga, comparável entre variáveis.</p>", rotulo='', largura_total=true) }}
+<h3 class="section-data__table-title">Z-scores por variável (times selecionados)</h3>
+{{ zs|safe }}
+</section>
+<h2>4. Evolução na temporada</h2>{{ serie|safe }}
+<h2>5. Todas as variáveis</h2>{{ medidas_todas|safe }}
+{% endblock %}

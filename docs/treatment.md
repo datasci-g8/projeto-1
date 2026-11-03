@@ -228,23 +228,17 @@ Rodar com:
 O projeto usa Flask porque:
 
 1. o enunciado sugere Flask explicitamente;
-2. o grupo já tem um painel Flask funcional, que será reaproveitado no
-   painel e nas análises seguintes;
+2. o relatório web (`dashboards/web/panel.py`, templates e Plotly) roda no
+   mesmo processo que a API JSON;
 3. a camada de dados não depende do framework — config, loader e cleaning
-   podem ser importados por FastAPI sem mudança.
+   podem ser importados por outro framework sem mudança.
 
-Se a decisão for revertida, basta criar os routers FastAPI chamando
-calcular_tratamento() para leitura e manter os mesmos contratos JSON.
+Dependências: `requirements.txt` (padrão do ecossistema Python).
 
-Observação: o projeto usa requirements.txt, que é o padrão do ecossistema
-Python e o arquivo referenciado pelo README.
+## 9. Limitações
 
-## 9. Limitações e próximos passos
-
-- A #1 não imputa valores: decisão consciente, porque a base não tem ausentes.
-  Se tivesse, a política seria sinalizar e tratar no eixo #2.
-- As regras de duplicata de confronto/data precisam de decisão humana; o
-  pipeline apenas sinaliza.
-- O frontend atual é uma página mínima; o painel completo é o eixo #6.
-- A análise de ausentes (#2) deve usar a base bruta; as análises #3 e #4 usam
-  a base limpa gerada aqui.
+- Não há imputação de ausentes: a base bruta está completa; a política seria
+  sinalizar antes de imputar (ver `docs/missing.md`).
+- Duplicatas de confronto/data exigem decisão humana; o pipeline sinaliza.
+- Ausentes e testes MCAR usam a base **bruta**; outliers e descritiva usam a
+  base **tratada** gerada aqui.

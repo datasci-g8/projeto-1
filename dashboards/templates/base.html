@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block titulo %}{% endblock %} · Box score NBA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=21">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+<script defer src="{{ url_for('static', filename='report-math.js') }}"></script>
+<script src="{{ url_for('static', filename='plotly.min.js') }}?v=2.35.2" charset="utf-8"></script>
+</head>
+<body>
+<a class="skip-link" href="#conteudo-principal">Ir para o conteúdo</a>
+<div class="site-top">
+<header class="site-header">
+<div class="container site-header__inner">
+<h1 class="site-header__title">Box score NBA</h1>
+<p class="site-header__subtitle">Estatísticas por time e jogo, temporada regular 2025–26</p>
+<p class="site-header__meta">Grupo 8: Golden State Warriors e Orlando Magic · Laboratório de Ciência de Dados, UFAPE · 2026.2</p>
+</div>
+</header>
+<div class="site-brand-accent" aria-hidden="true"></div>
+{% set paginas=[('index','Base e dicionário'),('quality_view','Qualidade'),('outliers_view','Outliers'),('descriptive_view','Descritiva'),('skewness_view','Assimetria'),('cv_view','CV'),('iqr_view','IQR'),('synthesis_view','Síntese')] %}
+<nav class="site-nav" aria-label="Seções do relatório">
+<div class="container site-nav__inner">
+{% for ep,nome in paginas %}<a href="{{ url_for(ep, times=times_sel, var=var_sel) }}" class="{{ 'ativo' if request.endpoint==ep }}">{{ nome }}</a>{% endfor %}
+</div>
+</nav>
+</div>
+<main id="conteudo-principal" class="report-main">
+<div class="container">
+<form class="toolbar" method="get" aria-label="Filtros de times e variável">
+<div class="toolbar__col toolbar__col--times">
+<label class="toolbar__label" for="sel-times">Times</label>
+<p class="toolbar__hint">Ctrl ou Cmd para vários. Padrão: Grupo 8.</p>
+<select class="toolbar__list" id="sel-times" name="times" multiple size="5">{% for t in todos_times %}<option value="{{ t }}" {{ 'selected' if t in times_sel }}>{{ t }}</option>{% endfor %}</select>
+</div>
+<div class="toolbar__col toolbar__col--var">
+<label class="toolbar__label" for="sel-var">Variável</label>
+<div class="toolbar__actions">
+<select class="input input--select" id="sel-var" name="var">{% for v in variaveis %}<option value="{{ v }}" {{ 'selected' if v==var_sel }}>{{ rotulos[v] }}</option>{% endfor %}</select>
+<button class="btn btn--primary" type="submit">Aplicar</button>
+</div>
+</div>
+<p class="toolbar__status"><strong>Times:</strong> {{ times_sel|join(', ') }} · <strong>Variável:</strong> {{ rotulos[var_sel] }}</p>
+</form>
+<div class="page-body">
+{% block conteudo %}{% endblock %}
+</div>
+</div>
+</main>
+<footer class="site-footer">
+<div class="container">
+<p class="site-footer__text"><span class="site-footer__label">Convenções:</span> DP amostral (n−1); quartis lineares; outliers 1,5×IQR; duas casas decimais; por jogo.</p>
+</div>
+</footer>
+</body>
+</html>

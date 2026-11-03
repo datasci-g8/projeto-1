@@ -2,7 +2,7 @@
 
 Tudo o que é "convenção do projeto" fica aqui: caminhos, times do grupo,
 variáveis de análise, mapeamento de colunas, domínios e constantes estatísticas.
-As demais análises (#2, #3, #4) devem importar daqui — nunca repetir o valor
+As demais análises devem importar daqui — nunca repetir o valor
 de k, do limiar z ou do método de quartis.
 """
 from __future__ import annotations
@@ -19,6 +19,7 @@ CLEAN_DIR = DATA_DIR / "clean"
 CLEAN_CSV = CLEAN_DIR / "base_tratada.csv"
 MODEL_CSV = CLEAN_DIR / "base_modelagem.csv"  # base limpa sem COLUNAS_EXCLUIDAS_MODELAGEM
 STATIC_DIR = BASE_DIR / "dashboards" / "static"
+TEMPLATES_DIR = BASE_DIR / "dashboards" / "templates"
 DOCS_DIR = BASE_DIR / "docs"
 
 # ---------------------------------------------------------------------------
@@ -182,7 +183,7 @@ TOLERANCIA_PONTOS = 1e-6    # pontos são contagens inteiras
 METODO_QUARTIS = "interpolacao_linear"  # padrão pandas/numpy (tipo 7 de Hyndman-Fan)
 DDOF = 1                    # desvio padrão e variância amostrais
 
-# Ausentes (#2). Os parâmetros de simulação são usados só na validação dos testes.
+# Ausentes (missing). Parâmetros de simulação só na validação dos testes.
 ALPHA_TESTES = 0.05
 SEMENTE = 42
 PROPORCAO_AUSENTE = 0.15
@@ -190,7 +191,7 @@ COLUNA_ALVO_AUSENCIA = "assistencias"
 COLUNA_CAUSA_MAR = "pontos"
 PERMUTACOES_JJ = 199
 
-# Outliers (#3)
+# Outliers
 K_VIZINHOS_KNN = 5
 K_VIZINHOS_LOF = 20
 LOF_LIMIAR = 1.5

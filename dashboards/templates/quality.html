@@ -1,0 +1,45 @@
+{% extends "base.html" %}{% from "_report.html" import intro, interpretacao_paragrafos, legenda %}{% block titulo %}Qualidade dos dados{% endblock %}{% block conteudo %}
+<h2>1. Valores ausentes por coluna</h2>
+{{ intro("Contagem na base original (antes do pipeline de tratamento).") }}
+{{ ausentes|safe }}
+{{ interpretacao_paragrafos([conclusao_ausentes]) }}
+<h2>2. Verificação exigida pelo enunciado</h2>
+{{ intro("Ausentes, duplicatas, negativos, zeros válidos, domínio e consistência entre colunas — na bruta e após o tratamento.") }}
+<table class="tabela tabela-texto">
+<tr><th>Verificação</th><th>Base bruta</th><th>Base tratada</th></tr>
+<tr><td>Valores ausentes (total)</td><td>{{ resumo_antes.ausentes }}</td><td>{{ resumo_qual.ausentes }}</td></tr>
+<tr><td>Duplicatas exatas</td><td>{{ resumo_antes.duplicatas_exatas }}</td><td>—</td></tr>
+<tr><td>Duplicatas (time + jogo)</td><td>{{ resumo_antes.duplicatas_time_jogo }}</td><td>Removidas no pipeline: {{ dup_removidas.total }} (exatas: {{ dup_removidas.exatas }}; time+jogo: {{ dup_removidas.time_jogo }})</td></tr>
+<tr><td>Linhas × colunas</td><td>{{ resumo_antes.linhas }} × {{ resumo_antes.colunas }}</td><td>{{ resumo_qual.linhas }} × {{ resumo_qual.colunas }}</td></tr>
+<tr><td>Inconsistências ({{ n_regras }} regras de limpeza)</td><td>—</td><td>{{ inconsistencias }} ocorrência(s) sinalizada(s)</td></tr>
+</table>
+{{ legenda("Zeros em contagens (ex.: tocos = 0) são válidos no basquete. Negativos, percentuais fora de [0, 1], somas inconsistentes e duplicatas são checados automaticamente.") }}
+{% if violacoes_regras %}
+<h3>Regras com violação na base tratada</h3>
+<table class="tabela tabela-texto">
+<tr><th>Regra</th><th>O que verifica</th><th>Ocorrências</th></tr>
+{% for r in violacoes_regras %}
+<tr><td>{{ r.regra }}</td><td>{{ r.descricao }}</td><td>{{ r.violacoes }}</td></tr>
+{% endfor %}
+</table>
+{% if issues_tabela %}{{ issues_tabela|safe }}{% endif %}
+{% else %}
+<p class="texto-exp"><strong>Resultado:</strong> nenhuma violação nas regras de limpeza na base tratada.</p>
+{% endif %}
+<h2>3. Mecanismos de ausência e testes MCAR</h2>
+{{ intro("MCAR, MAR e MNAR; testes aplicados nas variáveis de análise da base original (com ausência simulada quando a base está completa, para demonstração).") }}
+<ul class="meta">
+<li><strong>MCAR:</strong> ausência aleatória, independente dos valores observados e do valor faltante.</li>
+<li><strong>MAR:</strong> ausência relacionada a variáveis observadas, não ao valor faltante em si.</li>
+<li><strong>MNAR:</strong> ausência depende do valor não observado; não testável só com dados observados.</li>
+</ul>
+<h3>Testes implementados</h3>
+<table class="tabela tabela-texto">
+<tr><th>Teste</th><th>p-valor</th><th>Conclusão</th></tr>
+{% for nome, t in testes %}
+<tr><td>{{ nome }}</td><td>{{ t.get('p_valor', 'n/d') }}</td><td>{{ t.get('conclusao', '') }}</td></tr>
+{% endfor %}
+</table>
+<h2>4. Outliers estatísticos</h2>
+<p class="texto-exp">Jogos atípicos (não erros de medição) são analisados na seção <a href="{{ url_for('outliers_view', times=times_sel, var=var_sel) }}">Outliers</a>, com contagem por coluna e por método. Inconsistências aritméticas e de domínio são tratadas na seção 2 acima.</p>
+{% endblock %}

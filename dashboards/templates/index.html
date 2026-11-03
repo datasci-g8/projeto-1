@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% from "_report.html" import intro, legenda %}{% block titulo %}Base e dicionário{% endblock %}{% block conteudo %}
+<h2>1. A base de dados</h2>
+{{ intro("Estatísticas de box score por time e jogo, temporada regular NBA 2025–26. A unidade de análise é o time (não o jogador).") }}
+{{ intro("Cada linha é um time em uma partida; cada jogo aparece duas vezes. Período: " ~ datas[0] ~ " a " ~ datas[1] ~ ".") }}
+<p class="texto-exp">Bruta: <strong>2238 linhas × 28 colunas</strong>, 30 times. Após tratamento: <strong>{{ shape[0] }} linhas × {{ shape[1] }} colunas</strong>.</p>
+<h3>Jogos por time</h3>{{ n_por_time|safe }}
+<h2>2. Dicionário de dados</h2>
+{{ intro("Nome original, nome intuitivo em português, tipo semântico e significado de cada coluna.") }}
+{{ dicionario|safe }}
+<h2>3. Tratamento aplicado</h2>
+{{ intro("Datas padronizadas, colunas derivadas do confronto, renomeação para leitura humana e exclusões para modelagem preditiva.") }}
+<ul class="meta">
+<li><strong>Datas:</strong> campo de data convertido para datetime; colunas de mês e dia da semana; ordenação por time e data.</li>
+<li><strong>Categóricas:</strong> vitória/derrota como binária; confronto em mando, adversário e sigla; prorrogação a partir dos minutos.</li>
+</ul>
+<h3>Exclusões para modelagem</h3>
+<table class="tabela tabela-texto"><tr><th>Coluna</th><th>Justificativa</th></tr>{% for c,j in excluidas.items() %}<tr><td>{{ c }}</td><td>{{ j }}</td></tr>{% endfor %}</table>
+<p class="texto-exp">Percentuais e pontos totais são combinações de outras colunas: mantidos na descritiva, evitar colinearidade na modelagem.</p>
+<p class="texto-exp"><strong>Qualidade:</strong> ausentes, duplicatas e inconsistências na seção <a href="{{ url_for('quality_view') }}">Qualidade</a>.</p>
+<h3>Amostra ({{ times_sel|join(' e ') }})</h3>{{ amostra|safe }}
+{% endblock %}

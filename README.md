@@ -15,7 +15,7 @@ regras de leitura.
 - Flask para a aplicação web
 - pandas e numpy para o tratamento
 - pytest para os testes
-- Plotly previsto para os gráficos do painel
+- Plotly para gráficos interativos do painel
 
 Flask foi escolhido por ser a sugestão do enunciado e por manter a aplicação
 simples de executar e hospedar. A camada de dados (config, loader e cleaning)
@@ -26,20 +26,31 @@ script de análise sem mudança.
 
 | Caminho | Conteúdo |
 |---|---|
-| main.py | aplicação Flask, monta /static e registra o blueprint de qualidade |
+| main.py | aplicação Flask, API JSON e painel web |
 | config.py | caminhos, times do grupo, variáveis, renomeação e constantes |
 | dashboards/prep/loader.py | leitura, validação das 28 colunas, tipagem, data e colunas derivadas |
 | dashboards/prep/cleaning.py | duplicatas, 30 regras de inconsistência, registros afetados, relatório, base limpa e base de modelagem |
 | dashboards/api/quality.py | rotas /api/quality/summary, /issues, /regras e /api/health |
 | dashboards/analysis/missing.py | ausentes por coluna/time e padrões na base original; testes de Little, Jamshidian-Jalal, Listing-Schlittgen e Fairclough |
+| dashboards/api/missing.py | rotas /api/missing/summary e /tests |
 | dashboards/analysis/outliers.py | z-score, IQR, Grubbs, ECOD, K-NN, LOF e DBSCAN com interface comum |
-| dashboards/api/missing.py, routes_outliers.py | rotas /api/missing/* e /api/outliers* |
-| dashboards/static/index.html | página inicial mínima com links para a API |
+| dashboards/api/outliers.py | rotas /api/outliers/summary e /api/outliers |
+| dashboards/analysis/descriptive.py | medidas, assimetria, CV, IQR e outliers 1,5×IQR por variável × time |
+| dashboards/api/descriptive.py | rotas /api/descriptive/summary e /outliers |
+| dashboards/analysis/plots.py | boxplot, barras comparativas, histograma + KDE (Plotly) |
+| dashboards/analysis/narrative.py | interpretações textuais geradas a partir dos resultados |
+| dashboards/web/panel.py | rotas HTML do relatório (/quality, /descriptive, …) |
+| dashboards/templates/ | seções navegáveis do relatório web |
+| dashboards/static/style.css | estilos do painel |
+| dashboards/static/plotly.min.js | Plotly.js (mesma versão do pacote Python) |
+| dashboards/theme.py | cores GSW/ORL e layout dos gráficos |
+| dashboards/web/report_tables.py | tabelas HTML com cabeçalhos em português |
 | tests/ | fixtures sintéticas e testes do loader, das regras e da API |
 | data/ | CSV bruto (não alterar), data/clean/base_tratada.csv e data/clean/base_modelagem.csv (gerados) |
-| docs/tratamento.md | regras, decisões, justificativas e contrato da API |
-| docs/ausentes.md | teoria dos mecanismos e dos testes de MCAR, resultado na base original e validação |
-| docs/outliers.md | teoria de cada método, resultados e comparação entre métodos |
+| docs/treatment.md | regras, decisões, justificativas e contrato da API |
+| docs/missing.md | mecanismos de ausência, testes MCAR e contrato da API |
+| docs/outliers.md | métodos de detecção, resultados e contrato da API |
+| docs/descriptive.md | convenções da descritiva e contrato da API |
 
 ## Como rodar
 
@@ -48,7 +59,9 @@ script de análise sem mudança.
     pip install -r requirements.txt
     python main.py
 
-Acesse http://localhost:5000. A porta pode ser trocada com a variável PORT.
+Acesse http://localhost:5000 (relatório web: dicionário, qualidade, outliers,
+descritiva, assimetria, CV, IQR e síntese, com seletor de times e variável).
+A porta pode ser trocada com a variável PORT.
 
 Para gerar a base limpa e a base de modelagem sem subir o servidor:
 
@@ -77,6 +90,8 @@ base não tem inconsistências e que a base limpa é idempotente.
 | GET /api/missing/tests | testes de MCAR sobre a base original |
 | GET /api/outliers/summary | tabela coluna × método, multivariado, normalidade, sensibilidade |
 | GET /api/outliers | registros marcados; ?method=, ?team=, ?modo=coluna\|multivariado |
+| GET /api/descriptive/summary | medidas, assimetria, CV, IQR; aceita ?team= e ?var= |
+| GET /api/descriptive/outliers | outliers 1,5×IQR; aceita ?team= e ?var= |
 
 Exemplo:
 
@@ -108,10 +123,14 @@ incluindo as verificações entre as duas linhas do mesmo jogo. As regras são
 testadas com mutações sintéticas, para que a ausência de problemas na base
 real não seja confundida com ausência de verificação.
 
-## Próximos passos
+## Deploy público
 
-- Estatística descritiva, assimetria, coeficiente de variação e IQR.
-- Painel completo com dicionário, tabelas, boxplot, barras, histogramas e
-  síntese interpretativa.
-- Integração contínua com testes de contrato e de consistência entre as
-  camadas.
+1. Repositório no GitHub (`datasci-g8/projeto-1`).
+2. Serviço web Python (Render, Railway, PythonAnywhere, etc.):
+   - Build: `pip install -r requirements.txt`
+   - Start: `gunicorn -b 0.0.0.0:$PORT main:app`
+   - Incluir `data/stats_times_regular_final.csv` e `dashboards/static/plotly.min.js`.
+3. Testar `/`, `/descriptive` e `/outliers` antes de publicar.
+4. Informar no Google Classroom o link do repositório **e** a URL pública do painel.
+
+CI: `.github/workflows/pytest.yml` executa `pytest -q` em push/PR para `main`.

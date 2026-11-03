@@ -1,4 +1,4 @@
-"""Testes da detecção de outliers (#3)."""
+"""Testes da detecção de outliers."""
 from __future__ import annotations
 
 import numpy as np
